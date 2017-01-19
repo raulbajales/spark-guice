@@ -17,15 +17,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import spark.Access;
+import spark.globalstate.ServletFlag;
 import spark.resource.AbstractFileResolvingResource;
 import spark.resource.AbstractResourceHandler;
 import spark.resource.ClassPathResource;
 import spark.resource.ClassPathResourceHandler;
 import spark.resource.ExternalResource;
 import spark.resource.ExternalResourceHandler;
-import spark.route.RouteMatcherFactory;
+import spark.route.Routes;
+import spark.staticfiles.StaticFilesConfiguration;
 import spark.utils.IOUtils;
-import spark.webserver.MatcherFilter;
+import spark.http.matching.MatcherFilter;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -53,13 +55,13 @@ public class SparkGuiceFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        Access.runFromServlet();
+        ServletFlag.runFromServlet();
         this.application = (SparkGuiceApplication) getApplication(filterConfig);
         this.injector = Guice.createInjector(application.modules());
         this.injector.injectMembers(application);
         this.application.init();
         this.filterPath = FilterTools.getFilterPath(filterConfig);
-        this.matcherFilter = new MatcherFilter(RouteMatcherFactory.get(), true, false);
+        this.matcherFilter = new MatcherFilter(Routes.create(), StaticFilesConfiguration.servletInstance, false, false);
     }
 
     /**
